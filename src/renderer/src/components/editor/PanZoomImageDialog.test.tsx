@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PanZoomImageDialog } from './PanZoomImageDialog'
+import { listenForViewerZoomRequests, requestViewerZoom } from './viewer-zoom-request'
 
 const resizeObservers = new Set<() => void>()
 
@@ -86,6 +87,25 @@ describe('PanZoomImageDialog', () => {
     expect(image.style.width).toBe('968px')
     expect(image.style.transform).toBe('translate(16px, 58px)')
     expect(screen.getByRole('button', { name: 'Fit to screen' })).toBeDisabled()
+  })
+
+  it('takes the app zoom shortcut ahead of the pane behind it, and resets to the fitted view', () => {
+    const pane = { current: document.body }
+    const paneZoom = vi.fn()
+    const stopPane = listenForViewerZoomRequests(paneZoom, pane)
+    render(<PanZoomImageDialog open onOpenChange={() => {}} src="blob:shot" title="shot.png" />)
+    sizeCanvas()
+    const image = screen.getByRole('img', { name: 'shot.png' })
+    Object.defineProperty(image, 'naturalWidth', { value: 2000 })
+    Object.defineProperty(image, 'naturalHeight', { value: 1000 })
+    fireEvent.load(image)
+
+    act(() => void requestViewerZoom('in'))
+    expect(image.style.width).toBe('1210px')
+    act(() => void requestViewerZoom('reset'))
+    expect(image.style.width).toBe('968px')
+    expect(paneZoom).not.toHaveBeenCalled()
+    stopPane()
   })
 
   it('shows the fallback when the image fails to load', () => {
