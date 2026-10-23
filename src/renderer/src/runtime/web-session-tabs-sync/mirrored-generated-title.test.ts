@@ -48,6 +48,7 @@ describe('buildMirroredTerminalTabs generated title', () => {
       'env-1',
       new Map([[lookupId, existing]]),
       {},
+      {},
       0,
       1_000
     )
