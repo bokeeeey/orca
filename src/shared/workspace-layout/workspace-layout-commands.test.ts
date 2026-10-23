@@ -634,41 +634,14 @@ describe('layout command effects', () => {
 
   it('a generated title set by command no longer names the pane the previous one came from', () => {
     const { model, tabA, leafA, ctx } = setup()
-    const workspace = model.workspaces[WS]!
-    const tagged: WorkspaceLayoutModel = {
-      ...model,
-      workspaces: {
-        ...model.workspaces,
-        [WS]: {
-          ...workspace,
-          tabs: workspace.tabs.map((tab) =>
-            tab.kind === 'terminal' && tab.id === tabA
-              ? {
-                  ...tab,
-                  generatedTitle: 'Fix login',
-                  generatedTitlePaneKey: paneKeyOf(tab.entityId, leafA)
-                }
-              : tab
-          )
-        }
-      }
-    }
-    const renamed = build(
-      ctx,
-      [
-        {
-          type: 'renameTab',
-          workspace: WS,
-          tabId: tabA,
-          kind: 'generated',
-          title: 'Ship docs',
-          replaceExisting: true
-        }
-      ],
-      tagged
-    ).model
-    expect(terminalTab(renamed, tabA).generatedTitle).toBe('Ship docs')
-    expect(terminalTab(renamed, tabA)).not.toHaveProperty('generatedTitlePaneKey')
+    const tagged = structuredClone(model)
+    const tab = terminalTab(tagged, tabA)
+    tab.generatedTitle = 'Fix login'
+    tab.generatedTitlePaneKey = paneKeyOf(tab.entityId, leafA)
+    const rename = { type: 'renameTab', workspace: WS, tabId: tabA, kind: 'generated' } as const
+    const renamed = build(ctx, [{ ...rename, title: 'Ship docs', replaceExisting: true }], tagged)
+    expect(terminalTab(renamed.model, tabA).generatedTitle).toBe('Ship docs')
+    expect(terminalTab(renamed.model, tabA)).not.toHaveProperty('generatedTitlePaneKey')
   })
 
   it('reuses the open tab for a file and replaces a preview tab of the same kind', () => {
