@@ -130,6 +130,7 @@ export function PanZoomImageDialog({
         <DialogTitle className="sr-only">{title}</DialogTitle>
         {/* Why: mounted with the content, so every opening starts from the fitted view. */}
         <PanZoomImageCanvas
+          open={open}
           src={src}
           size={size}
           title={title}
@@ -145,6 +146,7 @@ export function PanZoomImageDialog({
 }
 
 function PanZoomImageCanvas({
+  open,
   src,
   size,
   title,
@@ -155,7 +157,7 @@ function PanZoomImageCanvas({
   onClose
 }: Pick<
   PanZoomImageDialogProps,
-  'src' | 'size' | 'title' | 'showTitle' | 'background' | 'fallback' | 'toolbarActions'
+  'open' | 'src' | 'size' | 'title' | 'showTitle' | 'background' | 'fallback' | 'toolbarActions'
 > & { onClose: () => void }): React.JSX.Element {
   // Why: state, not a ref — the dialog portal mounts the canvas after this component's first effects.
   const [canvas, setCanvas] = useState<HTMLDivElement | null>(null)
@@ -240,7 +242,8 @@ function PanZoomImageCanvas({
   }, [canvas, geometry])
 
   useEffect(() => {
-    if (!canvas) {
+    // Why: `open`, not the mount — a closing dialog stays mounted while it fades out.
+    if (!canvas || !open) {
       return
     }
     // Why: popup priority, so Cmd/Ctrl +/- zooms this image instead of the editor image it covers.
@@ -256,7 +259,7 @@ function PanZoomImageCanvas({
       { current: canvas },
       'popup'
     )
-  }, [canvas, geometry])
+  }, [canvas, geometry, open])
 
   const stepZoom = (factor: number): void => {
     if (geometry) {
