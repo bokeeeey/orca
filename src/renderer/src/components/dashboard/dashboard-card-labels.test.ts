@@ -67,10 +67,24 @@ describe('rowConversationName', () => {
     }
 
     expect(
-      rowConversationName({ ...row(LEAF_A, 'session-a'), tab }, true, LAYOUT, paneTitles)
+      rowConversationName(
+        { ...row(LEAF_A, 'session-a'), tab },
+        true,
+        LAYOUT,
+        paneTitles,
+        new Map(),
+        undefined
+      )
     ).toBe('Fix intake flow')
     expect(
-      rowConversationName({ ...row(LEAF_B, 'session-b'), tab }, true, LAYOUT, paneTitles)
+      rowConversationName(
+        { ...row(LEAF_B, 'session-b'), tab },
+        true,
+        LAYOUT,
+        paneTitles,
+        new Map(),
+        undefined
+      )
     ).toBe('Redis cache strategy')
   })
 })
